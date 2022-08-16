@@ -1,35 +1,69 @@
-import { Text, Window, hot, View } from "@nodegui/react-nodegui";
-import React from "react";
+import { Text, Window, hot, View, LineEdit, Button } from "@nodegui/react-nodegui";
+import React, { useMemo } from "react";
 import { QIcon } from "@nodegui/nodegui";
-import { StepOne } from "./components/stepone";
-import { StepTwo } from "./components/steptwo";
 import nodeguiIcon from "../assets/nodegui.jpg";
 
 const minSize = { width: 500, height: 520 };
 const winIcon = new QIcon(nodeguiIcon);
-class App extends React.Component {
-  render() {
+const App = () => {
+  const [todos, setTodos] = React.useState<string[]>([]);
+  const [value, setValue] = React.useState('');
+  const lineEditHandler = useMemo(
+    () => ({
+      textChanged: (text: string) => {
+        setValue(text);
+      }
+    }),
+    []
+  );
+  const loadButtonHandler = useMemo(
+    () => ({
+      clicked: () => {
+        if (value) {
+          setTodos(prev => [...prev, value]);
+          setValue('');
+        }
+      }
+    }),
+    [value]
+  );
+  const todoHandler = (todo: string) => ({
+      clicked: () => {
+          setTodos(prev => prev.filter(p => p !== todo));
+      }
+    })
     return (
       <Window
         windowIcon={winIcon}
-        windowTitle="Hello 👋🏽"
+        windowTitle="ToDo List"
         minSize={minSize}
         styleSheet={styleSheet}
       >
         <View style={containerStyle}>
-          <Text id="welcome-text">Welcome to NodeGui 🐕</Text>
-          <Text id="step-1">1. Play around</Text>
-          <StepOne />
-          <Text id="step-2">2. Debug</Text>
-          <StepTwo />
+          <Text id="welcome-text">ToDo List</Text>
+          <LineEdit
+            on={lineEditHandler}
+            id="textField"
+            text={value}
+            placeholderText="What do you need to do"
+            style="padding: 4px 8px;"
+          />
+          <Button text="Add" on={loadButtonHandler} id="btn" />
+          {todos.map(t => <Button on={todoHandler(t)} text={t} style={todoStyle}/>)}
         </View>
       </Window>
     );
-  }
 }
 
 const containerStyle = `
   flex: 1; 
+  padding: 15px;
+`;
+
+const todoStyle = `
+  background: none;
+  border: 1px solid gray;
+  border-radius: 3px;
 `;
 
 const styleSheet = `
@@ -39,11 +73,10 @@ const styleSheet = `
     qproperty-alignment: 'AlignHCenter';
     font-family: 'sans-serif';
   }
-
-  #step-1, #step-2 {
-    font-size: 18px;
-    padding-top: 10px;
-    padding-horizontal: 20px;
+  
+  #btn {
+    margin-bottom: 10px;
+    padding: 4px 8px;
   }
 `;
 
